@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------
+   Tokens de color. Los valores OKLCH crudos (`L C H`) los inyecta el
+   PaletteProvider en :root a partir de src/config/palettes.ts.
+   Aquí sólo se mapean a utilidades de Tailwind.
+------------------------------------------------------------------ */
+@theme inline {
+  --color-background: oklch(var(--c-background));
+  --color-surface: oklch(var(--c-surface));
+  --color-surface-strong: oklch(var(--c-surface-strong));
+  --color-line: oklch(var(--c-border));
+  --color-foreground: oklch(var(--c-foreground));
+  --color-muted: oklch(var(--c-muted));
+  --color-subtle: oklch(var(--c-subtle));
+  --color-primary: oklch(var(--c-primary));
+  --color-on-primary: oklch(var(--c-on-primary));
+  --color-accent: oklch(var(--c-accent));
+  --color-tertiary: oklch(var(--c-tertiary));
+  --color-glow: oklch(var(--c-glow));
+
+  --font-mono: var(--font-fira-code), ui-monospace, "SF Mono", monospace;
+  --font-sans: var(--font-fira-code), ui-monospace, "SF Mono", monospace;
+
+  --radius-card: 1rem;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Valores por defecto para el primer paint (evita flash sin color).
+   Se sobrescriben en runtime por el PaletteProvider. */
+:root {
+  --c-background: 0.145 0.028 285;
+  --c-surface: 0.185 0.034 286;
+  --c-surface-strong: 0.225 0.042 287;
+  --c-border: 0.305 0.052 288;
+  --c-foreground: 0.965 0.008 285;
+  --c-muted: 0.755 0.03 288;
+  --c-subtle: 0.6 0.036 288;
+  --c-primary: 0.72 0.185 305;
+  --c-on-primary: 0.145 0.028 285;
+  --c-accent: 0.78 0.145 330;
+  --c-tertiary: 0.7 0.15 268;
+  --c-glow: 0.62 0.22 300;
+
+  --header-height: 4.5rem;
+}
+
+@layer base {
+  * {
+    border-color: oklch(var(--c-border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--header-height);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Lenis controla el scroll; desactivamos el nativo para no competir. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  html.lenis {
+    scroll-behavior: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    background-color: oklch(var(--c-background));
+    color: oklch(var(--c-foreground));
+    font-family: var(--font-mono);
+    font-feature-settings: "calt" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+    transition:
+      background-color 0.45s var(--ease-out-expo),
+      color 0.45s var(--ease-out-expo);
+  }
+
+  ::selection {
+    background-color: oklch(var(--c-primary) / 0.28);
+    color: oklch(var(--c-foreground));
+  }
+
+  :focus-visible {
+    outline: 2px solid oklch(var(--c-primary));
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: oklch(var(--c-background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: oklch(var(--c-primary) / 0.35);
+    border-radius: 999px;
+    border: 3px solid oklch(var(--c-background));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(var(--c-primary) / 0.6);
+  }
+}
+
+@layer utilities {
+  /* Texto con gradiente de marca */
+  .text-gradient {
+    background-image: linear-gradient(
+      110deg,
+      oklch(var(--c-primary)),
+      oklch(var(--c-accent)) 45%,
+      oklch(var(--c-tertiary))
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Borde degradado sobre superficie */
+  .border-gradient {
+    position: relative;
+  }
+
+  .border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      oklch(var(--c-primary) / 0.65),
+      oklch(var(--c-accent) / 0.2) 40%,
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Panel translúcido reutilizable. Sin backdrop-filter: sobre un fondo
+     estático no aporta nada visualmente y obliga al compositor a
+     re-muestrear el fondo en cada frame de scroll. */
+  .panel {
+    background-color: oklch(var(--c-surface) / 0.6);
+    border: 1px solid oklch(var(--c-border) / 0.65);
+  }
+
+  /* Variante para superficies que sí flotan sobre el contenido. */
+  .panel-blur {
+    backdrop-filter: blur(14px);
+  }
+
+  /* Cuadrícula de fondo */
+  .grid-bg {
+    background-image:
+      linear-gradient(oklch(var(--c-border) / 0.35) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(var(--c-border) / 0.35) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+  }
+
+  /* Ruido sutil para dar textura */
+  .noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 0 1px oklch(var(--c-primary) / 0.2), 0 18px 60px -20px oklch(var(--c-glow) / 0.55);
+  }
+
+  /* Marquesina infinita */
+  .animate-marquee {
+    animation: marquee var(--marquee-duration, 40s) linear infinite;
+  }
+
+  .marquee-mask {
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -28px, 0);
+  }
+}
+
+.animate-caret {
+  animation: caret-blink 1.05s steps(1) infinite;
+}
+
+.animate-float {
+  animation: float-slow var(--float-duration, 14s) ease-in-out infinite;
+  /* Los blobs llevan blur de 120px: sin promoverlos a capa propia el
+     navegador vuelve a calcular el desenfoque en cada frame. */
+  will-change: transform;
+  contain: paint;
+}
+
+/* Respeto por prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
